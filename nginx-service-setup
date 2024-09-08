@@ -1,0 +1,53 @@
+Steps to install Nginx on server through source code
+
+#update the server
+apt update -y 
+
+#install essentials
+apt install build-essential
+
+#download nginx tar file
+wget https://nginx.org/download/nginx-1.27.1.tar.gz
+
+#untar the nginx package
+tar -zxvf nginx-1.27.1.tar.gz
+
+#get support libraries
+apt install libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev make 
+#https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/
+
+#configure with parameters
+./configure --sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module
+#https://nginx.org/en/docs/configure.html
+
+#compile and install (make file will be cretaed)
+make 
+make install
+
+#create a systemd file for nginx
+vi /lib/systemd/system/nginx.service
+
+[Unit]
+Description=NGINX HTTP and reverse proxy server
+After=syslog.target network-online.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+User=root
+Group=root
+ExecStartPre=/usr/bin/nginx -t
+ExecStart=/usr/bin/nginx
+ExecReload=/usr/bin/kill -s reload
+ExecStop=/bin/kill -s QUIT $MAINPID
+ExecStartPost=/bin/sleep 0.1
+
+[Install]
+WantedBy=multi-user.target
+
+# reload the system and enable the nginx (if the system reboots) use sudo if not root user
+systemctl daemon-reload
+systemctl start nginx 
+systemctl staus nginx
+systemctl enable nginx
+systemctl restart nginx
