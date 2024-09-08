@@ -1,0 +1,2 @@
+# Nginx
+Nginx_setup
